@@ -4,65 +4,54 @@ import pandas as pd
 
 st.set_page_config(page_title="ניהול ספרים", layout="centered")
 
-st.title("📚 מאגר הספרים שלי (מחובר לגוגל)")
+st.title("📚 מאגר הספרים שלי")
 
 # קישור לגיליון שלך
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1o6yjdU8yo3vNWXFGLqYVCyR_bSYFif_6csZNRvrWJ34/edit?usp=sharing"
 
-# יצירת החיבור
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# קריאת הנתונים בצורה בטוחה
+# קריאת הנתונים
 try:
-    # קורא את כל הגיליון
     df = conn.read(spreadsheet=spreadsheet_url)
-    # אם הגיליון ריק או לא קיים, יוצר מבנה בסיסי
     if df is None or df.empty:
-        df = pd.DataFrame(columns=["שם הספר", "מיקום"])
+        df = pd.DataFrame(columns=["שם הספר", "שם המחבר", "מיקום"])
 except Exception:
-    # במקרה של שגיאה בקריאה (למשל גיליון ריק לגמרי)
-    df = pd.DataFrame(columns=["שם הספר", "מיקום"])
+    df = pd.DataFrame(columns=["שם הספר", "שם המחבר", "מיקום"])
 
-# ניקוי שורות ריקות
 df = df.dropna(how="all")
 
 # תפריט צד להוספה
 st.sidebar.header("הוספת ספר חדש")
 book_name = st.sidebar.text_input("שם הספר")
+author_name = st.sidebar.text_input("שם המחבר") # שדה חדש
 book_location = st.sidebar.text_input("מיקום הספר")
 
 if st.sidebar.button("שמור במאגר"):
-    if book_name and book_location:
-        # יצירת שורה חדשה
-        new_row = pd.DataFrame([{"שם הספר": book_name, "מיקום": book_location}])
+    if book_name and author_name and book_location:
+        new_row = pd.DataFrame([{"שם הספר": book_name, "שם המחבר": author_name, "מיקום": book_location}])
+        updated_df = pd.concat([df, new_row], ignore_index=True)
         
-        # חיבור הנתונים החדשים לישנים
-        if df.empty:
-            updated_df = new_row
-        else:
-            updated_df = pd.concat([df, new_row], ignore_index=True)
-        
-        # עדכון הגליון בגוגל
         conn.update(spreadsheet=spreadsheet_url, data=updated_df)
         st.sidebar.success(f"הספר '{book_name}' נשמר!")
         st.rerun()
     else:
-        st.sidebar.error("נא למלא את שני השדות")
+        st.sidebar.error("נא למלא את כל השדות")
 
 # חיפוש
 st.header("🔍 חיפוש ספר")
-search_query = st.text_input("הקלידי שם לחיפוש:")
+search_query = st.text_input("חפשי לפי שם ספר או מחבר:")
 
 if search_query:
-    # חיפוש חכם שמתעלם מאותיות גדולות/קטנות
-    results = df[df["שם הספר"].astype(str).str.contains(search_query, case=False, na=False)]
+    # חיפוש שבודק גם בשם הספר וגם בשם המחבר
+    mask = (df["שם הספר"].astype(str).str.contains(search_query, case=False, na=False)) | \
+           (df["שם המחבר"].astype(str).str.contains(search_query, case=False, na=False))
+    results = df[mask]
+    
     if not results.empty:
         st.table(results)
     else:
-        st.warning("הספר לא נמצא במאגר")
+        st.warning("לא נמצאו תוצאות")
 else:
     st.write("כל הספרים במאגר:")
-    if not df.empty:
-        st.dataframe(df, use_container_width=True)
-    else:
-        st.info("המאגר ריק כרגע. הוסיפי ספר בתפריט הצד!")
+    st.dataframe(df, use_container_width=True)
