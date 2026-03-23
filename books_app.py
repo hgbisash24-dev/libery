@@ -8,7 +8,7 @@ st.title("📚 מאגר הספרים שלי (מחובר לגוגל)")
 
 # חיבור לגוגל שיטס
 # החליפי את הקישור למטה בקישור של הגיליון שלך!
-spreadsheet_url = "כאן_להדביק_את_הקישור_של_גוגל_שיטס"
+spreadsheet_url = "https://docs.google.com/spreadsheets/d/1o6yjdU8yo3vNWXFGLqYVCyR_bSYFif_6csZNRvrWJ34/edit?usp=sharing"
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 
