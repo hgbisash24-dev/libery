@@ -4,7 +4,7 @@ import pandas as pd
 
 st.set_page_config(page_title="ניהול ספרים", layout="centered")
 
-st.title("📚 מאגר הספרים שלי")
+st.title("📚 שבת אחת וסיימתם")
 
 # קישור לגיליון שלך
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1o6yjdU8yo3vNWXFGLqYVCyR_bSYFif_6csZNRvrWJ34/edit?usp=sharing"
